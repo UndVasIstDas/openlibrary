@@ -6,12 +6,12 @@ from functools import cached_property
 from typing import cast
 
 import web
-from isbnlib import NotValidISBNError, canonical, mask
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
 from infogami.utils import stats
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
+from isbnlib import NotValidISBNError, canonical, mask
+
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
 from openlibrary.plugins.upstream import (
@@ -60,10 +60,11 @@ class Edition(models.Edition):
 
     def get_authors(self):
         """Added to provide same interface for work and edition"""
-        work_authors = self.works[0].get_authors() if self.works else []
-        authors = [follow_redirect(a) for a in self.authors]
-        authors = [a for a in authors if a and a.type.key == "/type/author"]
-        return work_authors + authors
+        if self.works:
+            return self.works[0].get_authors()
+        else:
+            authors = [follow_redirect(a) for a in self.authors]
+            return [a for a in authors if a and a.type.key == "/type/author"]
 
     def get_covers(self):
         """
